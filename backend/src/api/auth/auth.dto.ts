@@ -53,14 +53,6 @@ export const registerRequirements = z.object({
       })
 });
 
-
-export const activateAccountRequirements = z.object({
-  query: z.object({
-    token: z.string().min(1, "Token richiesto")
-  })
-});
-
-
 export const refreshTokenRequirements = z.object({
   body: z.object({
     refreshToken: z.string().min(1, "Refresh token richiesto")

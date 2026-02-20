@@ -1,2 +1,105 @@
-<h1>BENVENUTO NELLA HOME</h1>
-<button class="btn btn-primary btn-block w-100" (click)="logout()">logout</button>
+
+<div *ngIf="currentUser$ | async as user; else loading">
+    <h1>{{ (currentUser$ | async)?.role }} dashboard</h1>
+
+
+    <div class="d-flex justify-content-end p-3">
+        <button class="btn btn-primary w-10" (click)="logout()">Logout</button>
+    </div>
+
+    <div *ngIf="(currentUser$ | async)?.role === 'dipendente'">
+
+        <!-- FORM NUOVA RICHIESTA -->
+        <div class="card mb-4 p-3">
+            <h5>Nuova richiesta</h5>
+            <form [formGroup]="newRequestForm" (ngSubmit)="submitNewRequest()">
+                <div class="mb-2">
+                    <label>Data Inizio</label>
+                    <input type="date" class="form-control" formControlName="dataInizio">
+                </div>
+                <div class="mb-2">
+                    <label>Data Fine</label>
+                    <input type="date" class="form-control" formControlName="dataFine">
+                </div>
+                <div class="mb-2">
+                    <label>Categoria</label>
+                    <input type="number" class="form-control" formControlName="categoriaId">
+                </div>
+                <div class="mb-2">
+                    <label>Motivazione</label>
+                    <textarea class="form-control" formControlName="motivazione"></textarea>
+                </div>
+                <button type="submit" class="btn btn-success mt-2" [disabled]="newRequestForm.invalid">Invia richiesta</button>
+            </form>
+        </div>
+
+        <!-- TABELLA RICHIESTE DIPENDENTE -->
+        <div *ngIf="requests.length > 0; else noEmployeeRequests">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th style="color: green">Data Inizio</th>
+                    <th style="color: red">Data Fine</th>
+                    <th>Motivazione</th>
+                    <th>Stato</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr *ngFor="let r of requests" (click)="details(r.id)" style="cursor:pointer;">
+                    <td>{{ r.id }}</td>
+                    <td>{{ r.dataInizio | date:'dd/MM/yyyy' }}</td>
+                    <td>{{ r.dataFine | date:'dd/MM/yyyy' }}</td>
+                    <td>{{ r.motivazione }}</td>
+                    <td>{{ r.stato }}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <ng-template #noEmployeeRequests>
+            <p class="text-center mt-3">Nessuna richiesta disponibile</p>
+        </ng-template>
+    </div>
+
+
+    <div *ngIf="(currentUser$ | async)?.role === 'admin'">
+        <div *ngIf="requestsToApprove.length > 0; else noRequests">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th style="color: green">Data Inizio</th>
+                    <th style="color: red">Data Fine</th>
+                    <th>Motivazione</th>
+                    <th>Utente</th>
+                    <th>Stato</th>
+                    <th>Azioni</th>
+
+                </tr>
+                </thead>
+                <tbody>
+                <tr *ngFor="let r of requestsToApprove" style="cursor:pointer;">
+                    <td>{{ r.id }}</td>
+                    <td>{{ r.dataInizio | date:'dd/MM/yyyy' }}</td>
+                    <td>{{ r.dataFine | date:'dd/MM/yyyy' }}</td>
+                    <td>{{ r.motivazione }}</td>
+                    <td>{{r.utenteId}}</td>
+                    <td>{{ r.stato }}</td>
+                    <td>
+                        <button class="btn btn-success btn-sm me-1" (click)="handleRequest(r.id, 'Approvato')">✔ Approva</button>
+                        <button class="btn btn-danger btn-sm" (click)="handleRequest(r.id, 'Rifiutato')">✖ Rifiuta</button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <ng-template #noRequests>
+            <p class="text-center mt-3">Nessuna richiesta da approvare</p>
+        </ng-template>
+    </div>
+</div>
+<ng-template #loading>
+    <p>Caricamento dati utente...</p>
+</ng-template>

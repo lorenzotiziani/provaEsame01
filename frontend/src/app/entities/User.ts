@@ -4,6 +4,6 @@ export type User = {
     password:string;
     nome: string;
     cognome: string;
-    isActive: boolean;
+    role:string;
 };
 

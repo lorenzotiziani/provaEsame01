@@ -1,25 +1,15 @@
-import { Response } from 'express';
+import {NextFunction, Response} from 'express';
 import { UserService } from './user.service';
 import { AuthRequest } from '../../middleware/auth.middleware';
-
+import {NotFoundError} from "../../errors";
 
 export class UserController {
-  static async getProfile(req: AuthRequest, res: Response) {
+  static async getProfile(req: AuthRequest, res: Response,next:NextFunction) {
     try {
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          error: 'Utente non autenticato'
-        });
-      }
-
-      const user = await UserService.getUserById(req.user.userId);
+      const user = await UserService.getUserById(req.user!.userId);
 
       if (!user) {
-        return res.status(404).json({
-          success: false,
-          error: 'Utente non trovato'
-        });
+        throw new NotFoundError("User does not exist");
       }
 
       res.json({
@@ -27,18 +17,11 @@ export class UserController {
         data: user
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Errore durante il recupero del profilo'
-      });
+      next(error)
     }
   }
 
-  static async changePassword(req: AuthRequest, res: Response) {
-    const ipAddress =
-        req.headers['x-forwarded-for']?.toString().split(',')[0].trim() ||
-        req.socket.remoteAddress ||
-        'Unknown';
+  static async changePassword(req: AuthRequest, res: Response,next:NextFunction) {
     try {
       const { currentPassword, newPassword } = req.body;
 
@@ -49,37 +32,24 @@ export class UserController {
         message: 'Password cambiata con successo'
       });
     } catch (error) {
-      res.status(400).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Errore durante il cambio password'
-      });
+      next(error)
     }
   }
 
-  static async deleteAccount(req: AuthRequest, res: Response) {
+  static async deleteAccount(req: AuthRequest, res: Response,next:NextFunction) {
     try {
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          error: 'Utente non autenticato'
-        });
-      }
-
-      await UserService.deleteUser(req.user.userId);
+      await UserService.deleteUser(req.user!.userId);
 
       res.json({
         success: true,
         message: 'Account eliminato con successo'
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Errore durante l\'eliminazione dell\'account'
-      });
+      next(error)
     }
   }
 
-  static async getAllUsers(req: AuthRequest, res: Response) {
+  static async getAllUsers(req: AuthRequest, res: Response,next:NextFunction) {
     try {
       const users = await UserService.getAllUsers();
       res.json({
@@ -87,10 +57,7 @@ export class UserController {
         data: users
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Errore durante il recupero degli utenti'
-      });
+      next(error)
     }
   }
 

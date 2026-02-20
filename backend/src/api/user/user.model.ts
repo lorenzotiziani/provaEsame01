@@ -10,7 +10,7 @@ export class UserModel {
     const result = await request
         .input('id', sql.Int, id)
         .query(`
-          SELECT id, email, password, nome, cognome, isActive
+          SELECT id, email, password, nome, cognome, role
           FROM TUtente
           WHERE id = @id
         `);
@@ -25,7 +25,7 @@ export class UserModel {
     const result = await request
         .input('email', sql.VarChar(255), email)
         .query(`
-          SELECT id, email, password, nome, cognome, isActive
+          SELECT id, email, password, nome, cognome, role
           FROM TUtente
           WHERE email = @email
         `);
@@ -42,11 +42,11 @@ export class UserModel {
         .input('password', sql.VarChar(255), userData.password)
         .input('firstName', sql.VarChar(100), userData.nome)
         .input('lastName', sql.VarChar(100), userData.cognome)
-        .input('isActive', sql.Bit, userData.isActive)
+        .input('role', sql.Bit, userData.role)
         .query(`
-          INSERT INTO TUtente (email, password, nome, cognome, isActive)
+          INSERT INTO TUtente (email, password, nome, cognome, role)
             OUTPUT INSERTED.*
-          VALUES (@email, @password, @firstName, @lastName, @isActive)
+          VALUES (@email, @password, @firstName, @lastName, @role)
         `);
 
     return result.recordset[0];
@@ -75,9 +75,9 @@ export class UserModel {
       setClause.push('password = @password');
       inputs.password = userData.password;
     }
-    if (userData.isActive !== undefined) {
-      setClause.push('isActive = @isActive');
-      inputs.isActive = userData.isActive;
+    if (userData.role !== undefined) {
+      setClause.push('role = @role');
+      inputs.role = userData.role;
     }
 
 
@@ -89,8 +89,6 @@ export class UserModel {
     Object.keys(inputs).forEach(key => {
       if (key === 'id') {
         request.input(key, sql.Int, inputs[key]);
-      } else if (key === 'isActive') {
-        request.input(key, sql.Bit, inputs[key]);
       } else {
         request.input(key, sql.VarChar(255), inputs[key]);
       }
@@ -109,35 +107,12 @@ export class UserModel {
   static async findAll(): Promise<User[]> {
     const pool = getPool();
     const result = await pool.request().query(`
-      SELECT id, email, nome, cognome, isActive
+      SELECT id, email, nome, cognome, role
       FROM TUtente
-      WHERE isActive = 1
       ORDER BY id ASC
     `);
 
     return result.recordset;
-  }
-
-  // Metodo per verificare se un'email esiste (escludendo un utente specifico)
-  static async isEmailTaken(email: string, excludeUserId?: number): Promise<boolean> {
-    const pool = getPool();
-    const request = pool.request();
-
-    request.input('email', sql.VarChar(255), email);
-
-    let query = `
-      SELECT COUNT(*) as count
-      FROM Users
-      WHERE email = @email AND isActive = 1
-    `;
-
-    if (excludeUserId) {
-      request.input('excludeUserId', sql.Int, excludeUserId);
-      query += ' AND id != @excludeUserId';
-    }
-
-    const result = await request.query(query);
-    return result.recordset[0].count > 0;
   }
 
   static async delete(id: number): Promise<void> {

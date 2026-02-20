@@ -12,6 +12,7 @@ import { authInterceptor } from './utils/auth.interceptor';
 import { HomeComponent } from './pages/home/home.component';
 import {IfAuthenticatedDirective} from './utils/if-authenthicated.directive'
 import {logoutInterceptor} from "./utils/logout.interceptor";
+import { DetailsComponent } from './pages/details/details.component';
 
 @NgModule({
   declarations: [
@@ -19,7 +20,8 @@ import {logoutInterceptor} from "./utils/logout.interceptor";
     LoginComponent,
     RegisterComponent,
     HomeComponent,
-    IfAuthenticatedDirective
+    IfAuthenticatedDirective,
+    DetailsComponent
   ],
   imports: [
     BrowserModule,

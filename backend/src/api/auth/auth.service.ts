@@ -25,14 +25,15 @@ export class AuthService {
       password: hashedPassword,
       nome: data.nome,
       cognome: data.cognome,
-      isActive: false
+      //ruolo null perché lo decido a db
+      role:""
     });
 
 
     const { password, ...userWithoutPassword } = user;
 
     return {
-      message: 'Registrazione completata. Controlla la tua email per attivare l\'account.',
+      message: 'Registrazione completata, ora puoi effettuare il Login',
       user: userWithoutPassword
     };
   }
@@ -42,10 +43,6 @@ export class AuthService {
 
     if (!user) {
       throw new UnauthorizedError('Credenziali non valide');
-    }
-
-    if (!user.isActive) {
-      throw new UnauthorizedError('Account non attivato. Controlla la tua email.');
     }
 
     const isValidPassword = await bcrypt.compare(data.password, user.password);
@@ -97,11 +94,6 @@ export class AuthService {
       throw new UnauthorizedError('Utente non trovato');
     }
 
-    if (!user.isActive) {
-      await RefreshTokenModel.revokeByUserId(user.id);
-      throw new UnauthorizedError('Account disattivato');
-    }
-
     await RefreshTokenModel.revokeByToken(token);
 
 
@@ -125,7 +117,8 @@ export class AuthService {
   private static async generateTokens(user: any): Promise<{ accessToken: string; refreshToken: string }> {
     const payload: JwtPayload = {
       userId: user.id,
-      email: user.email
+      email: user.email,
+      role:user.role
     };
 
     const accessTokenOptions: jwt.SignOptions = {

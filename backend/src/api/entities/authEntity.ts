@@ -4,16 +4,14 @@ export interface User {
     password: string;
     nome: string;
     cognome: string;
-    isActive: boolean;
-    createdAt?: Date;
-    updatedAt?: Date;
+    role:string;
 }
 export interface UserSafe {
     id: number;
     email: string;
     nome: string;
     cognome: string;
-    isActive: boolean;
+    role: string;
 }
 
 export interface AuthResponse {
@@ -24,6 +22,7 @@ export interface AuthResponse {
 export interface JwtPayload {
     userId: number;
     email: string;
+    role: string;
     iat?: number;
     exp?: number;
 }

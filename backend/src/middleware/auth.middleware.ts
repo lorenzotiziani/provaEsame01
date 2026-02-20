@@ -6,6 +6,7 @@ export interface AuthRequest extends Request {
   user?: {
     userId: number;
     email: string;
+    role: string;
   };
 }
 
@@ -36,7 +37,8 @@ export const authMiddleware = async (
     // Aggiungi user info alla request
     (req as AuthRequest).user = {
       userId: decoded.userId,
-      email: decoded.email
+      email: decoded.email,
+      role:decoded.role,
     };
 
     next();
